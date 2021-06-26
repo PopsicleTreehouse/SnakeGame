@@ -1,7 +1,6 @@
 from copy import deepcopy
 import curses
 from random import randint
-from random import choice
 from time import sleep
 
 
@@ -53,20 +52,22 @@ class Snake:
             new_tail = deepcopy(self.body_coords)[-1]
             new_tail[self.direction[0]] -= self.direction[1]
             self.body_coords.append(new_tail)
-            apple_coord_1 = choice(
-                [i for i in range(0, 9) if i not in [x[0] for x in self.body_coords]])
-            apple_coord_2 = choice(
-                [i for i in range(0, 9) if i not in [x[1] for x in self.body_coords]])
-            self.board[apple_coord_1][apple_coord_2] = '🍎'
+            free_spaces = [(i, x) for i in range(len(self.board))
+                           for x in range(len(self.board[i]))]
+            new_apple_coords = free_spaces[randint(0, len(free_spaces)-1)]
+            self.board[new_apple_coords[0]][new_apple_coords[1]] = '🍎'
 
     def redraw(self, stdscr):
+        stdscr.addstr(0, 0, (' '+'_'*len(self.board)*3))
         for i in range(len(self.board)):
-            stdscr.addstr(i, 0, ' '.join(self.board[i]))
+            stdscr.addstr(i+1, 0, '| '+' '.join(self.board[i])+'|')
             stdscr.refresh()
+        stdscr.addstr(11, 0, (' '+'¯'*len(self.board)*3))
 
 
 def main(stdscr):
     stdscr.timeout(0)
+    stdscr.refresh()
     snake = Snake()
     while True:
         key = stdscr.getch()
@@ -74,7 +75,7 @@ def main(stdscr):
             snake.set_direction(key)
         snake.move()
         snake.redraw(stdscr)
-        sleep(0.3)
+        sleep(0.25)
 
 
 if __name__ == '__main__':

@@ -14,8 +14,8 @@ class Snake:
         self.direction = [0, 1]
 
     def is_alive(self):
-        head = self.body_coords[-1]
-        tail = self.body_coords[:-1]
+        head = self.body_coords[0]
+        tail = self.body_coords[1:]
         return head not in tail
 
     def set_direction(self, key):
@@ -58,11 +58,11 @@ class Snake:
             self.board[new_apple_coords[0]][new_apple_coords[1]] = '🍎'
 
     def redraw(self, stdscr):
-        stdscr.addstr(0, 0, (' '+'_'*len(self.board)*3))
+        stdscr.addstr(0, 0, (' '+'-'*len(self.board)*3))
         for i in range(len(self.board)):
             stdscr.addstr(i+1, 0, '| '+' '.join(self.board[i])+'|')
             stdscr.refresh()
-        stdscr.addstr(11, 0, (' '+'¯'*len(self.board)*3))
+        stdscr.addstr(11, 0, (' '+'-'*len(self.board)*3))
 
 
 def main(stdscr):

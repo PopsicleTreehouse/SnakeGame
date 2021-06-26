@@ -8,10 +8,12 @@ class Snake:
     def __init__(self):
         self.valid_inputs = {curses.KEY_UP: (
             0, -1), curses.KEY_DOWN: (0, 1), curses.KEY_RIGHT: (1, 1), curses.KEY_LEFT: (1, -1)}
-        self.board = [['  ']*10 for _ in range(10)]
-        self.board[randint(0, 9)][randint(0, 9)] = '🍎'
+        self.board = [['  ']*12 for _ in range(12)]
+        self.board[randint(0, len(self.board)-1)
+                   ][randint(0, len(self.board)-1)] = '🍎'
         self.body_coords = [[0, i] for i in range(4)]
         self.direction = [0, 1]
+        self.score = 0
 
     def is_alive(self):
         head = self.body_coords[0]
@@ -44,29 +46,34 @@ class Snake:
             exit()
         self.body_coords.pop()
         if(self.body_coords[0][self.direction[0]] < 0):
-            self.body_coords[0][self.direction[0]] = 9
-        elif(self.body_coords[0][self.direction[0]] > 9):
+            self.body_coords[0][self.direction[0]] = len(self.board)-1
+        elif(self.body_coords[0][self.direction[0]] > len(self.board)-1):
             self.body_coords[0][self.direction[0]] = 0
         self.clear_board()
         if(not any('🍎' in x for x in self.board)):
+            self.score += 1
             new_tail = deepcopy(self.body_coords)[-1]
             new_tail[self.direction[0]] -= self.direction[1]
             self.body_coords.append(new_tail)
             free_spaces = [(i, x) for i in range(len(self.board))
-                           for x in range(len(self.board[i]))]
+                           for x in range(len(self.board[i])) if self.board[i][x] == '  ']
             new_apple_coords = free_spaces[randint(0, len(free_spaces)-1)]
             self.board[new_apple_coords[0]][new_apple_coords[1]] = '🍎'
 
     def redraw(self, stdscr):
-        stdscr.addstr(0, 0, (' '+'-'*len(self.board)*3))
+        stdscr.addstr(0, 1, '-'+'-—'*len(self.board))
+        stdscr.addstr(len(self.board)+1, 1, '-'+'-—'*len(self.board))
         for i in range(len(self.board)):
-            stdscr.addstr(i+1, 0, '| '+' '.join(self.board[i])+'|')
+            base_str = '| '+''.join(self.board[i])+'|'
+            if(i == 2):
+                base_str += '\tScore: '+str(self.score)
+            stdscr.addstr(i+1, 0, base_str)
             stdscr.refresh()
-        stdscr.addstr(11, 0, (' '+'-'*len(self.board)*3))
 
 
 def main(stdscr):
     stdscr.timeout(0)
+    curses.curs_set(0)
     stdscr.refresh()
     snake = Snake()
     while True:
@@ -75,7 +82,7 @@ def main(stdscr):
             snake.set_direction(key)
         snake.move()
         snake.redraw(stdscr)
-        sleep(0.25)
+        sleep(0.23)
 
 
 if __name__ == '__main__':

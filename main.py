@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from copy import deepcopy
 import curses
 from random import randint
 from time import sleep
@@ -10,7 +9,7 @@ class Snake:
     def __init__(self, size=10, speed=0.3, initial_size=4):
         self.valid_inputs = {curses.KEY_UP: (
             0, -1), curses.KEY_DOWN: (0, 1), curses.KEY_RIGHT: (1, 1), curses.KEY_LEFT: (1, -1)}
-        self.__target = '🍌'
+        self.__target = '🍎'
         self.__initial_size = initial_size
         self.__board_size = size
         self.__speed = speed
@@ -30,7 +29,7 @@ class Snake:
         self.alive = True
 
     def move(self):
-        new_head = deepcopy(self.__body_coords)[0]
+        new_head = self.__body_coords[0][:]
         new_head[self.__direction[0]] += self.__direction[1]
         self.__body_coords.insert(0, new_head)
         self._update_state()
@@ -102,7 +101,7 @@ class Snake:
                 for x in range(len(self.__board[i])) if([i, x] not in self.__body_coords)]
 
     def _level_up(self):
-        new_tail = deepcopy(self.__body_coords)[-1]
+        new_tail = self.__body_coords[-1][:]
         new_tail[self.__direction[0]] -= self.__direction[1]
         self.__body_coords.append(new_tail)
         self._add_target()

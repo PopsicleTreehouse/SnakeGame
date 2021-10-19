@@ -6,25 +6,38 @@ from time import sleep
 
 
 class Snake:
-    def __init__(self, size=10, speed=0.3, initial_size=4):
+    def __init__(self, stdscr, size=10, speed=0.3, initial_size=4, highscores=[]):
         self.valid_inputs = {curses.KEY_UP: (
             0, -1), curses.KEY_DOWN: (0, 1), curses.KEY_RIGHT: (1, 1), curses.KEY_LEFT: (1, -1)}
         self.__target = '🍎'
         self.__initial_size = initial_size
         self.__board_size = size
         self.__speed = speed
-        self.__score = 0
-        self.__highscores = []
-        self.initialize()
-
-    def initialize(self):
+        self.highscores = highscores
         self.__board = [
             ['  ']*self.__board_size for _ in range(self.__board_size)]
         self.__body_coords = [[0, i] for i in range(self.__initial_size)]
         self._add_target()
         self.__direction = [0, 1]
+        self.stdscr = stdscr
         # the first element signifies whether it's an x or y translation 0: y 1: x
         # the second element signifies direction 1: right -1: left
+        self.__score = 0
+        self.alive = True
+
+    def start(self):
+        while(self.alive):
+            key = self.stdscr.getch()
+            if(key in self.valid_inputs): self.set_direction(key)
+            self.move()
+
+    def wipe(self):
+        self.stdscr.nodelay(1)
+        self.__board = [
+            ['  ']*self.__board_size for _ in range(self.__board_size)]
+        self.__body_coords = [[0, i] for i in range(self.__initial_size)]
+        self._add_target()
+        self.__direction = [0, 1]
         self.__score = 0
         self.alive = True
 
@@ -40,37 +53,42 @@ class Snake:
                                       ] = self.__board_size-1
             elif(self.__body_coords[0][self.__direction[0]] > self.__board_size-1):
                 self.__body_coords[0][self.__direction[0]] = 0
-            self._clear__board()
+            self._clear_board()
             if(list(self._apple_coords) in self.__body_coords):
                 self._level_up()
+        self.redraw()
 
-    def redraw(self, stdscr):
+    def redraw(self):
         if(not self.alive):
-            stdscr.erase()
+            self.stdscr.erase()
         top_border = '-'+'-—'*self.__board_size
-        stdscr.addstr(0, 1, top_border)
-        stdscr.addstr(self.__board_size+1, 1, top_border)
+        self.stdscr.addstr(0, 1, top_border)
+        self.stdscr.addstr(self.__board_size+1, 1, top_border)
         for i in range(self.__board_size):
             side_border = '| '
-            stdscr.addstr(i+1, 2, ''.join(self.__board[i]))
-            stdscr.addstr(i+1, 0, side_border)
+            self.stdscr.addstr(i+1, 2, ''.join(self.__board[i]))
+            self.stdscr.addstr(i+1, 0, side_border)
             if(i == 2 and self.alive):
                 side_border += '\tScore: ' + str(self.__score)
-            stdscr.addstr(i+1, self.__board_size*2+2, side_border)
-            stdscr.refresh()
+            self.stdscr.addstr(i+1, self.__board_size*2+2, side_border)
+            self.stdscr.refresh()
         sleep(self.__speed)
 
     def end(self):
-        self.__highscores.append(self.__score)
-        self.__highscores = sorted(list(set(self.__highscores)), reverse=True)
-        self.__highscores = self.__highscores[:3]
+        self.highscores.append(self.__score)
+        self.highscores = sorted(list(set(self.highscores)), reverse=True)[:3]
         self.__board = [
             ['  ']*self.__board_size for _ in range(self.__board_size)]
         self.__board[3][3] = 'You lose'
         self.__board[4][3] = 'Score = '+str(self.__score)
-        for i in range(len(self.__highscores)):
-            self.__board[i+5][3] = f'{i+1}: {self.__highscores[i]}'
+        for i, x in enumerate(self.highscores):
+            self.__board[i+5][3] = f'{i+1}: {x}'
         self.__board[9][2] = 'Play again? y/n'
+        self.redraw()
+        self.stdscr.nodelay(0)
+        key = self.stdscr.getch()
+        if(key == 121): self.wipe()
+        else: exit()
 
     def set_direction(self, key):
         idx = self.valid_inputs[key]
@@ -85,7 +103,7 @@ class Snake:
         self.__board[self._apple_coords[0]
                      ][self._apple_coords[1]] = self.__target
 
-    def _clear__board(self):
+    def _clear_board(self):
         for i in range(self.__board_size):
             for x in range(len(self.__board[i])):
                 if(self.__board[i][x] != self.__target):
@@ -111,27 +129,14 @@ class Snake:
         head = self.__body_coords[0]
         tail = self.__body_coords[1:]
         self.alive = head not in tail
-
+        if(not self.alive): self.end()
 
 def main(stdscr):
     stdscr.timeout(0)
     curses.curs_set(0)
     stdscr.refresh()
-    snake = Snake(size=12, speed=0.23)
-    while True:
-        key = stdscr.getch()
-        if(key in snake.valid_inputs):
-            snake.set_direction(key)
-        if(not snake.alive):
-            snake.end()
-            if(key == 121):
-                snake.initialize()
-            elif(key == 110):
-                exit()
-        else:
-            snake.move()
-        snake.redraw(stdscr)
-
+    snake = Snake(stdscr, size=12, speed=0.15)
+    snake.start()
 
 if(__name__ == '__main__'):
     curses.wrapper(main)

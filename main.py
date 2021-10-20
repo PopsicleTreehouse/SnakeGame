@@ -42,10 +42,9 @@ class Snake:
         self._update_state()
         if(self.alive):
             self.body_coords.pop()
-            if(self.body_coords[0][self.direction[0]] < 0):
-                self.body_coords[0][self.direction[0]] = self.board_size-1
-            elif(self.body_coords[0][self.direction[0]] > self.board_size-1):
-                self.body_coords[0][self.direction[0]] = 0
+            head = self.body_coords[0][self.direction[0]]
+            if(head < 0 or head > self.board_size-1):
+                self.end()
             self._clear_board()
             if(list(self._apple_coords) in self.body_coords):
                 self._level_up()
@@ -80,10 +79,12 @@ class Snake:
         self.redraw()
         self.stdscr.nodelay(0)
         key = self.stdscr.getch()
-        if(key == 121):
-            self.wipe()
-        else:
-            exit()
+        while(chr(key).lower() != 'y'):
+            key = self.stdscr.getch()
+            if(chr(key).lower() == 'n'):
+                exit()
+        self.wipe()
+        self.start()
 
     def set_direction(self, key):
         idx = self.valid_inputs[key]
@@ -131,7 +132,7 @@ def main(stdscr):
     stdscr.timeout(0)
     curses.curs_set(0)
     stdscr.refresh()
-    snake = Snake(stdscr, size=12, speed=0.15)
+    snake = Snake(stdscr, size=12, speed=0.23)
     snake.start()
 
 curses.wrapper(main)

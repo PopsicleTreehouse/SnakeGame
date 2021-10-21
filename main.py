@@ -30,7 +30,7 @@ class Snake:
         self.body_coords = [[0, i] for i in range(self.initial_size)]
         # the first element signifies whether it's an x or y translation 0: y 1: x
         # the second element signifies direction 1: right/down -1: left/up
-        self._add_target()
+        self.add_target()
         self.direction = [0, 1]
         self.score = 0
         self.alive = True
@@ -39,15 +39,15 @@ class Snake:
         new_head = self.body_coords[0][:]
         new_head[self.direction[0]] += self.direction[1]
         self.body_coords.insert(0, new_head)
-        self._update_state()
+        self.update_state()
         if(self.alive):
             self.body_coords.pop()
             head = self.body_coords[0][self.direction[0]]
             if(head < 0 or head > self.board_size-1):
                 self.end()
-            self._clear_board()
+            self.clear_board()
             if(list(self._apple_coords) in self.body_coords):
-                self._level_up()
+                self.level_up()
         self.redraw()
 
     def redraw(self):
@@ -67,10 +67,10 @@ class Snake:
         sleep(self.speed)
 
     def end(self):
-        self.highscores.append(self.score)
-        self.highscores = sorted(list(set(self.highscores)), reverse=True)[:3]
-        self.board = [
-            ['  ']*self.board_size for _ in range(self.board_size)]
+        if(self.score not in self.highscores): 
+            self.highscores.append(self.score)
+        self.highscores = sorted(self.highscores, reverse=True)[:3]
+        self.board = [['  ']*self.board_size for _ in range(self.board_size)]
         self.board[3][3] = 'You lose'
         self.board[4][3] = 'Score = '+str(self.score)
         for i, x in enumerate(self.highscores):
@@ -93,12 +93,12 @@ class Snake:
         self.direction[0] = idx[0]
         self.direction[1] = idx[1]
 
-    def _add_target(self):
-        free_spaces = self._generate_free_coords()
+    def add_target(self):
+        free_spaces = self.generate_free_coords()
         self._apple_coords = free_spaces[randint(0, len(free_spaces)-1)]
         self.board[self._apple_coords[0]][self._apple_coords[1]] = self.target
 
-    def _clear_board(self):
+    def clear_board(self):
         for i in range(self.board_size):
             for x in range(len(self.board[i])):
                 if(self.board[i][x] != self.target):
@@ -109,18 +109,18 @@ class Snake:
                 continue
             self.board[k[0]][k[1]] = 'O '
 
-    def _generate_free_coords(self):
+    def generate_free_coords(self):
         return [(i, x) for i in range(self.board_size)
                 for x in range(len(self.board[i])) if([i, x] not in self.body_coords)]
 
-    def _level_up(self):
+    def level_up(self):
         new_tail = self.body_coords[-1][:]
         new_tail[self.direction[0]] -= self.direction[1]
         self.body_coords.append(new_tail)
-        self._add_target()
+        self.add_target()
         self.score += 1
 
-    def _update_state(self):
+    def update_state(self):
         head = self.body_coords[0]
         tail = self.body_coords[1:]
         self.alive = head not in tail

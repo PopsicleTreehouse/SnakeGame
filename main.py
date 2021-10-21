@@ -28,8 +28,8 @@ class Snake:
         self.board = [
             ['  ']*self.board_size for _ in range(self.board_size)]
         self.body_coords = [[0, i] for i in range(self.initial_size)]
-        # # the first element signifies whether it's an x or y translation 0: y 1: x
-        # # the second element signifies direction 1: right/down -1: left/up
+        # the first element signifies whether it's an x or y translation 0: y 1: x
+        # the second element signifies direction 1: right/down -1: left/up
         self._add_target()
         self.direction = [0, 1]
         self.score = 0
@@ -103,12 +103,11 @@ class Snake:
             for x in range(len(self.board[i])):
                 if(self.board[i][x] != self.target):
                     self.board[i][x] = '  '
-        for j in range(len(self.body_coords)):
-            curr = self.body_coords[j]
+        for j,k in enumerate(self.body_coords):
             if(j == 0):
-                self.board[curr[0]][curr[1]] = '█ '
+                self.board[k[0]][k[1]] = '█ '
                 continue
-            self.board[curr[0]][curr[1]] = 'O '
+            self.board[k[0]][k[1]] = 'O '
 
     def _generate_free_coords(self):
         return [(i, x) for i in range(self.board_size)
@@ -132,7 +131,7 @@ def main(stdscr):
     stdscr.timeout(0)
     curses.curs_set(0)
     stdscr.refresh()
-    snake = Snake(stdscr, size=12, speed=0.23)
+    snake = Snake(stdscr, size=13, speed=0.23)
     snake.start()
 
 curses.wrapper(main)
